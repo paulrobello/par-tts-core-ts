@@ -1,0 +1,7 @@
+{
+  "name": "parcom-tts-local-extension",
+  "private": true,
+  "type": "module",
+  "dependencies": { "@parcom/tts": "file:../../.." },
+  "peerDependencies": { "@mariozechner/pi-coding-agent": "*" }
+}

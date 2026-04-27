@@ -1,0 +1,90 @@
+{
+  "name": "@parcom/tts",
+  "version": "0.1.0",
+  "description": "Provider-neutral TypeScript text-to-speech library for Node, browsers via proxy, and pi extensions",
+  "license": "MIT",
+  "author": "Paul Robello <probello@gmail.com>",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "tts",
+    "text-to-speech",
+    "openai",
+    "elevenlabs",
+    "deepgram",
+    "gemini",
+    "kokoro",
+    "pi-package"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./node": {
+      "types": "./dist/node/index.d.ts",
+      "import": "./dist/node/index.js",
+      "require": "./dist/node/index.cjs"
+    },
+    "./playback": {
+      "types": "./dist/node/playback.d.ts",
+      "import": "./dist/node/playback.js",
+      "require": "./dist/node/playback.cjs"
+    },
+    "./proxy": {
+      "types": "./dist/src-proxy.d.ts",
+      "import": "./dist/src-proxy.js",
+      "require": "./dist/src-proxy.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck:build": "tsc -p tsconfig.build.json --noEmit",
+    "test": "vitest run",
+    "check:browser": "tsc -p tsconfig.browser-check.json --noEmit",
+    "check:cjs": "tsc -p tsconfig.cjs-check.json --noEmit",
+    "check": "bun run typecheck && bun run test && bun run build && bun run check:browser && bun run check:cjs"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.0",
+    "tsup": "8.5.0",
+    "typescript": "5.9.3",
+    "vitest": "3.2.4"
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-coding-agent": "*",
+    "typebox": "*"
+  },
+  "peerDependenciesMeta": {
+    "@mariozechner/pi-coding-agent": {
+      "optional": true
+    },
+    "typebox": {
+      "optional": true
+    }
+  },
+  "optionalDependencies": {
+    "kokoro-js": "^1.2.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paulrobello/par-tts.git"
+  },
+  "bugs": {
+    "url": "https://github.com/paulrobello/par-tts/issues"
+  },
+  "homepage": "https://github.com/paulrobello/par-tts#readme",
+  "publishConfig": {
+    "access": "public"
+  }
+}
