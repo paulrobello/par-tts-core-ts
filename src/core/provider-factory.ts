@@ -39,7 +39,7 @@ export function listProviders(): ProviderName[] {
 export function createProvider(provider: ProviderAlias | string, config: CreateProviderConfig): TtsProvider {
   const normalized = normalizeProviderName(provider);
   if (normalized === "kokoro-onnx") {
-    throw new TtsError("Kokoro ONNX is only available from @parcom/tts/node", "unsupported_runtime", { provider: normalized, retryable: false });
+    throw new TtsError("Kokoro ONNX is only available from @paulrobello/par-tts-core-ts/node", "unsupported_runtime", { provider: normalized, retryable: false });
   }
 
   switch (normalized) {

@@ -1,11 +1,11 @@
-# @parcom/tts
+# @paulrobello/par-tts-core-ts
 
 Provider-neutral TypeScript text-to-speech library for Node, browsers through a proxy, and pi extensions.
 
 ## Install
 
 ```bash
-bun add @parcom/tts
+bun add @paulrobello/par-tts-core-ts
 ```
 
 ## Pipeline-first usage
@@ -13,14 +13,14 @@ bun add @parcom/tts
 The root API is browser-safe and does not read `process.env`. In Node/server code, pass credentials explicitly:
 
 ```ts
-import { createSpeechPipeline } from "@parcom/tts";
+import { createSpeechPipeline } from "@paulrobello/par-tts-core-ts";
 
 const pipeline = createSpeechPipeline({
   provider: "openai",
   apiKey: process.env.OPENAI_API_KEY!,
 });
 
-const result = await pipeline.synthesize("Hello from @parcom/tts", {
+const result = await pipeline.synthesize("Hello from @paulrobello/par-tts-core-ts", {
   voice: "nova",
   options: { format: "mp3" },
 });
@@ -33,8 +33,8 @@ For browser apps, do not ship provider API keys. Use the proxy transport shown b
 Node-only helpers can read provider settings from environment variables, save audio, and play audio with a local command (`afplay`, `ffplay`, or `mpg123`):
 
 ```ts
-import { createSpeechPipelineFromEnv, saveSpeechResult } from "@parcom/tts/node";
-import { playFile, playSpeechResult } from "@parcom/tts/playback";
+import { createSpeechPipelineFromEnv, saveSpeechResult } from "@paulrobello/par-tts-core-ts/node";
+import { playFile, playSpeechResult } from "@paulrobello/par-tts-core-ts/playback";
 
 const pipeline = createSpeechPipelineFromEnv({ provider: "openai" });
 const result = await pipeline.synthesize("Saved and played from Node.");
@@ -53,7 +53,7 @@ await playSpeechResult(result, "speech-again.mp3");
 Browser:
 
 ```ts
-import { createProxyTransport, createSpeechPipeline } from "@parcom/tts";
+import { createProxyTransport, createSpeechPipeline } from "@paulrobello/par-tts-core-ts";
 
 const pipeline = createSpeechPipeline({
   provider: "openai",
@@ -68,7 +68,7 @@ const result = await pipeline.synthesize("Hello through a proxy.");
 Server route:
 
 ```ts
-import { createTtsProxyHandler } from "@parcom/tts/proxy";
+import { createTtsProxyHandler } from "@paulrobello/par-tts-core-ts/proxy";
 
 export const POST = createTtsProxyHandler({
   providers: {
@@ -93,7 +93,7 @@ Canonical provider names:
 - `gemini`
 - `kokoro-onnx`
 
-`kokoro` is accepted as an alias for `kokoro-onnx`. Kokoro ONNX support is available from `@parcom/tts/node` and uses the optional `kokoro-js` dependency.
+`kokoro` is accepted as an alias for `kokoro-onnx`. Kokoro ONNX support is available from `@paulrobello/par-tts-core-ts/node` and uses the optional `kokoro-js` dependency.
 
 ## Environment variables
 

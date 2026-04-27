@@ -1,6 +1,6 @@
-# @parcom/tts pi extension example
+# @paulrobello/par-tts-core-ts pi extension example
 
-This extension registers a `tts_speak` tool that synthesizes text with `@parcom/tts`, saves an audio file, and optionally plays it with Node playback helpers.
+This extension registers a `tts_speak` tool that synthesizes text with `@paulrobello/par-tts-core-ts`, saves an audio file, and optionally plays it with Node playback helpers.
 
 Set provider credentials in the environment, for example:
 

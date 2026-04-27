@@ -39,7 +39,7 @@ export default function ttsExtension(pi: ExtensionAPI) {
   pi.registerTool({
     name: "tts_speak",
     label: "TTS Speak",
-    description: "Synthesize speech with @parcom/tts and optionally play it.",
+    description: "Synthesize speech with @paulrobello/par-tts-core-ts and optionally play it.",
     parameters: Type.Object({
       text: Type.String({ description: "Text to synthesize" }),
       provider: Type.Optional(Type.String({ description: "Provider name; defaults to openai" })),

@@ -1,5 +1,5 @@
 {
-  "name": "@parcom/tts",
+  "name": "@paulrobello/par-tts-core-ts",
   "version": "0.1.0",
   "description": "Provider-neutral TypeScript text-to-speech library for Node, browsers via proxy, and pi extensions",
   "license": "MIT",
@@ -78,12 +78,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/paulrobello/par-tts.git"
+    "url": "git+https://github.com/paulrobello/par-tts-core-ts.git"
   },
   "bugs": {
-    "url": "https://github.com/paulrobello/par-tts/issues"
+    "url": "https://github.com/paulrobello/par-tts-core-ts/issues"
   },
-  "homepage": "https://github.com/paulrobello/par-tts#readme",
+  "homepage": "https://github.com/paulrobello/par-tts-core-ts#readme",
   "publishConfig": {
     "access": "public"
   }

@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "@parcom/tts",
+      "name": "@paulrobello/par-tts-core-ts",
       "devDependencies": {
         "@types/node": "22.10.0",
         "tsup": "8.5.0",

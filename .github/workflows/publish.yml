@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   publish:
-    name: Publish @parcom/tts
+    name: Publish @paulrobello/par-tts-core-ts
     runs-on: ubuntu-latest
 
     steps:

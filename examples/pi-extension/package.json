@@ -2,6 +2,6 @@
   "name": "parcom-tts-pi-extension-example",
   "private": true,
   "type": "module",
-  "dependencies": { "@parcom/tts": "file:../.." },
+  "dependencies": { "@paulrobello/par-tts-core-ts": "file:../.." },
   "peerDependencies": { "@mariozechner/pi-coding-agent": "*" }
 }
