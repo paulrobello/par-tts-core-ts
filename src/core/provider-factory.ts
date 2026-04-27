@@ -15,7 +15,7 @@ import type {
   TtsProvider,
 } from "./types.js";
 
-export interface CreateProviderConfig extends ProviderConfig {}
+export type CreateProviderConfig = ProviderConfig;
 
 export interface CreateSpeechPipelineConfig extends CreateProviderConfig {
   provider: ProviderAlias;

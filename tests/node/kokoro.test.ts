@@ -1,7 +1,7 @@
 import { writeFile } from "node:fs/promises";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { collectAudio } from "../../src/core/audio.js";
-import { TtsError } from "../../src/core/errors.js";
+import type { TtsError } from "../../src/core/errors.js";
 import type { KokoroOnnxProvider as KokoroOnnxProviderClass } from "../../src/node/kokoro.js";
 
 const mocks = {

@@ -1,3 +1,5 @@
+import type { TtsTransport } from "../transport/types.js";
+
 export type ProviderName = "elevenlabs" | "openai" | "kokoro-onnx" | "deepgram" | "gemini";
 export type ProviderAlias = ProviderName | "kokoro";
 export type AudioFormat = "mp3" | "wav" | "opus" | "aac" | "flac" | "pcm" | "ulaw" | "ogg";
@@ -43,7 +45,7 @@ export interface CallbackBaseEvent {
   textLength: number;
 }
 
-export interface StartEvent extends CallbackBaseEvent {}
+export type StartEvent = CallbackBaseEvent;
 
 export interface ChunkEvent extends CallbackBaseEvent {
   chunk: Uint8Array;
@@ -71,7 +73,7 @@ export interface ProviderConfig {
   apiKey?: string;
   model?: string;
   voice?: string;
-  transport?: import("../transport/types.js").TtsTransport;
+  transport?: TtsTransport;
   retry?: RetryOptions;
   callbacks?: TtsCallbacks;
   options?: ProviderOptions;

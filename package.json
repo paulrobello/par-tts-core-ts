@@ -53,12 +53,18 @@
     "test": "vitest run",
     "check:browser": "tsc -p tsconfig.browser-check.json --noEmit",
     "check:cjs": "tsc -p tsconfig.cjs-check.json --noEmit",
-    "check": "bun run typecheck && bun run test && bun run build && bun run check:browser && bun run check:cjs"
+    "check": "bun run lint && bun run typecheck && bun run test && bun run build && bun run check:browser && bun run check:cjs",
+    "lint": "eslint .",
+    "checkall": "bun run check && npm pack --dry-run --json"
   },
   "devDependencies": {
+    "@eslint/js": "^9",
     "@types/node": "22.10.0",
+    "eslint": "^9",
+    "globals": "^17.5.0",
     "tsup": "8.5.0",
     "typescript": "5.9.3",
+    "typescript-eslint": "^8.59.0",
     "vitest": "3.2.4"
   },
   "peerDependencies": {
