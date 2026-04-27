@@ -55,7 +55,9 @@
     "check:cjs": "tsc -p tsconfig.cjs-check.json --noEmit",
     "check": "bun run lint && bun run typecheck && bun run test && bun run build && bun run check:browser && bun run check:cjs",
     "lint": "eslint .",
-    "checkall": "bun run check && npm pack --dry-run --json"
+    "checkall": "bun run check && npm pack --dry-run --json",
+    "precommit:install": "pre-commit install",
+    "precommit:run": "pre-commit run --all-files"
   },
   "devDependencies": {
     "@eslint/js": "^9",
