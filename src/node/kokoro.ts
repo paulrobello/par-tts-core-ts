@@ -5,6 +5,7 @@ import { TtsError } from "../core/errors.js";
 import type { AudioFormat, ProviderConfig, SpeechRequest, SpeechResult, TtsProvider, Voice } from "../core/types.js";
 
 export const KOKORO_DEFAULT_MODEL = "onnx-community/Kokoro-82M-v1.0-ONNX";
+export const KOKORO_MAX_CHARS_PER_CHUNK = 450;
 
 export interface KokoroAudio {
   save(path: string): void | Promise<void>;
@@ -74,15 +75,21 @@ export class KokoroOnnxProvider implements TtsProvider {
     const voice = await this.resolveVoice(request.voice ?? this.config.voice ?? this.defaultVoice);
     const speed = numericOption(request.options?.speed, numericOption(this.config.options?.speed, 1));
     const model = this.modelId();
+    const chunks = chunkKokoroText(request.text);
     const tempDir = await mkdtemp(join(tmpdir(), "par-tts-kokoro-"));
-    const filePath = join(tempDir, "speech.wav");
 
     try {
-      const audio = await runtime.generate(request.text, { voice, speed });
-      await audio.save(filePath);
-      const bytes = await readFile(filePath);
+      const wavChunks: Uint8Array[] = [];
+      for (const [index, chunk] of chunks.entries()) {
+        const filePath = join(tempDir, `speech-${index}.wav`);
+        const audio = await runtime.generate(chunk, { voice, speed });
+        await audio.save(filePath);
+        wavChunks.push(new Uint8Array(await readFile(filePath)));
+        await unlink(filePath).catch(() => undefined);
+      }
+
       return {
-        audio: new Uint8Array(bytes),
+        audio: wavChunks.length === 1 ? wavChunks[0]! : concatenateWavChunks(wavChunks),
         provider: this.name,
         voice,
         model,
@@ -92,7 +99,6 @@ export class KokoroOnnxProvider implements TtsProvider {
         textLength: request.text.length,
       };
     } finally {
-      await unlink(filePath).catch(() => undefined);
       await rm(tempDir, { recursive: true, force: true });
     }
   }
@@ -144,4 +150,121 @@ function deviceOption(value: unknown, fallback: KokoroDevice): KokoroDevice {
 
 function numericOption(value: unknown, fallback: number): number {
   return typeof value === "number" ? value : fallback;
+}
+
+function chunkKokoroText(text: string): string[] {
+  const normalized = text.replace(/\s+/g, " ").trim();
+  if (normalized.length <= KOKORO_MAX_CHARS_PER_CHUNK) return normalized ? [normalized] : [""];
+
+  const chunks: string[] = [];
+  let current = "";
+  const sentenceParts = normalized.match(/[^.!?…。？！]+[.!?…。？！]+["')\]]*|[^.!?…。？！]+$/g) ?? [normalized];
+
+  for (const sentence of sentenceParts) {
+    for (const part of hardWrapText(sentence.trim(), KOKORO_MAX_CHARS_PER_CHUNK)) {
+      if (!part) continue;
+      const candidate = current ? `${current} ${part}` : part;
+      if (candidate.length <= KOKORO_MAX_CHARS_PER_CHUNK) {
+        current = candidate;
+      } else {
+        if (current) chunks.push(current);
+        current = part;
+      }
+    }
+  }
+
+  if (current) chunks.push(current);
+  return chunks.length > 0 ? chunks : [""];
+}
+
+function hardWrapText(text: string, maxLength: number): string[] {
+  const parts: string[] = [];
+  let remaining = text.trim();
+
+  while (remaining.length > maxLength) {
+    let splitAt = remaining.lastIndexOf(" ", maxLength);
+    if (splitAt <= 0) splitAt = remaining.indexOf(" ", maxLength);
+    if (splitAt <= 0) splitAt = maxLength;
+
+    parts.push(remaining.slice(0, splitAt).trim());
+    remaining = remaining.slice(splitAt).trim();
+  }
+
+  if (remaining) parts.push(remaining);
+  return parts;
+}
+
+type ParsedWav = {
+  readonly fmt: Uint8Array;
+  readonly data: Uint8Array;
+};
+
+function concatenateWavChunks(chunks: Uint8Array[]): Uint8Array {
+  const parsed = chunks.map(parseWav);
+  const fmt = parsed[0]!.fmt;
+  const sameFormat = parsed.every((chunk) => bytesEqual(chunk.fmt, fmt));
+  if (!sameFormat) throw new TtsError("Cannot concatenate Kokoro WAV chunks with different audio formats", "provider_error", { provider: "kokoro-onnx", retryable: false });
+
+  const dataLength = parsed.reduce((total, chunk) => total + chunk.data.length, 0);
+  const output = new Uint8Array(12 + 8 + fmt.length + 8 + dataLength);
+  const view = new DataView(output.buffer);
+  writeAscii(output, 0, "RIFF");
+  view.setUint32(4, output.length - 8, true);
+  writeAscii(output, 8, "WAVE");
+  writeAscii(output, 12, "fmt ");
+  view.setUint32(16, fmt.length, true);
+  output.set(fmt, 20);
+  const dataHeaderOffset = 20 + fmt.length;
+  writeAscii(output, dataHeaderOffset, "data");
+  view.setUint32(dataHeaderOffset + 4, dataLength, true);
+
+  let offset = dataHeaderOffset + 8;
+  for (const chunk of parsed) {
+    output.set(chunk.data, offset);
+    offset += chunk.data.length;
+  }
+
+  return output;
+}
+
+function parseWav(bytes: Uint8Array): ParsedWav {
+  if (bytes.length < 44 || readAscii(bytes, 0, 4) !== "RIFF" || readAscii(bytes, 8, 4) !== "WAVE") {
+    throw new TtsError("Kokoro generated an invalid WAV chunk", "provider_error", { provider: "kokoro-onnx", retryable: false });
+  }
+
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  let offset = 12;
+  let fmt: Uint8Array | undefined;
+  let data: Uint8Array | undefined;
+
+  while (offset + 8 <= bytes.length) {
+    const id = readAscii(bytes, offset, 4);
+    const size = view.getUint32(offset + 4, true);
+    const start = offset + 8;
+    const end = start + size;
+    if (end > bytes.length) break;
+
+    if (id === "fmt ") fmt = bytes.slice(start, end);
+    if (id === "data") data = bytes.slice(start, end);
+    offset = end + (size % 2);
+  }
+
+  if (!fmt || !data) {
+    throw new TtsError("Kokoro generated a WAV chunk without fmt/data sections", "provider_error", { provider: "kokoro-onnx", retryable: false });
+  }
+
+  return { fmt, data };
+}
+
+function writeAscii(bytes: Uint8Array, offset: number, value: string): void {
+  for (let index = 0; index < value.length; index += 1) bytes[offset + index] = value.charCodeAt(index);
+}
+
+function readAscii(bytes: Uint8Array, offset: number, length: number): string {
+  return String.fromCharCode(...bytes.slice(offset, offset + length));
+}
+
+function bytesEqual(left: Uint8Array, right: Uint8Array): boolean {
+  if (left.length !== right.length) return false;
+  return left.every((value, index) => value === right[index]);
 }

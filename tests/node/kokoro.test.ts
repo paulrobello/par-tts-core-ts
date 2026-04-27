@@ -1,5 +1,6 @@
 import { writeFile } from "node:fs/promises";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { collectAudio } from "../../src/core/audio.js";
 import { TtsError } from "../../src/core/errors.js";
 import type { KokoroOnnxProvider as KokoroOnnxProviderClass } from "../../src/node/kokoro.js";
 
@@ -7,6 +8,31 @@ const mocks = {
   fromPretrained: vi.fn(),
   generate: vi.fn(),
 };
+
+function wavWithPcm(...pcm: number[]): Uint8Array {
+  const dataLength = pcm.length;
+  const bytes = new Uint8Array(44 + dataLength);
+  const view = new DataView(bytes.buffer);
+  const writeAscii = (offset: number, value: string) => {
+    for (let index = 0; index < value.length; index += 1) bytes[offset + index] = value.charCodeAt(index);
+  };
+
+  writeAscii(0, "RIFF");
+  view.setUint32(4, 36 + dataLength, true);
+  writeAscii(8, "WAVE");
+  writeAscii(12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, 24_000, true);
+  view.setUint32(28, 24_000, true);
+  view.setUint16(32, 1, true);
+  view.setUint16(34, 8, true);
+  writeAscii(36, "data");
+  view.setUint32(40, dataLength, true);
+  bytes.set(pcm, 44);
+  return bytes;
+}
 
 vi.mock("kokoro-js", () => ({
   KokoroTTS: {
@@ -89,5 +115,34 @@ describe("KokoroOnnxProvider", () => {
 
     expect(mocks.fromPretrained).toHaveBeenCalledWith("custom/kokoro", { dtype: "q8", device: "cpu" });
     expect(result.model).toBe("custom/kokoro");
+  });
+
+  it("chunks long text before calling kokoro-js to avoid tokenizer truncation", async () => {
+    let audioByte = 1;
+    mocks.generate.mockImplementation(async () => {
+      const wav = wavWithPcm(audioByte++);
+      return { save: async (path: string) => writeFile(path, wav) };
+    });
+    const longText = Array.from({ length: 80 }, (_, index) => `Sentence ${index + 1} has enough words to exercise the chunking path.`).join(" ");
+
+    const result = await (await createProvider()).synthesize({ text: longText, voice: "af_sarah" });
+
+    expect(mocks.generate.mock.calls.length).toBeGreaterThan(1);
+    expect(mocks.generate.mock.calls.every(([text]) => typeof text === "string" && text.length <= 500)).toBe(true);
+    expect(mocks.generate.mock.calls.map(([, options]) => options)).toEqual(mocks.generate.mock.calls.map(() => ({ voice: "af_sarah", speed: 1 })));
+    const audio = await collectAudio(result.audio);
+    expect(Array.from(audio.slice(0, 4))).toEqual([82, 73, 70, 70]);
+    expect(audio.length).toBe(44 + mocks.generate.mock.calls.length);
+    expect(result.textLength).toBe(longText.length);
+  });
+
+  it("hard-wraps one overlong sentence into bounded Kokoro chunks", async () => {
+    mocks.generate.mockImplementation(async () => ({ save: async (path: string) => writeFile(path, wavWithPcm(7)) }));
+    const longSentence = Array.from({ length: 160 }, (_, index) => `word${index}`).join(" ");
+
+    await (await createProvider()).synthesize({ text: longSentence, voice: "af_sarah" });
+
+    expect(mocks.generate.mock.calls.length).toBeGreaterThan(1);
+    expect(mocks.generate.mock.calls.every(([text]) => typeof text === "string" && text.length <= 500)).toBe(true);
   });
 });

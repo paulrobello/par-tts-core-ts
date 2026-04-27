@@ -93,7 +93,7 @@ Canonical provider names:
 - `gemini`
 - `kokoro-onnx`
 
-`kokoro` is accepted as an alias for `kokoro-onnx`. Kokoro ONNX support is available from `@paulrobello/par-tts-core-ts/node` and uses the optional `kokoro-js` dependency.
+`kokoro` is accepted as an alias for `kokoro-onnx`. Kokoro ONNX support is available from `@paulrobello/par-tts-core-ts/node` and uses the optional `kokoro-js` dependency. Long Kokoro text is split into bounded sentence/word chunks before synthesis to avoid the model/tokenizer truncating oversized inputs.
 
 ## Environment variables
 

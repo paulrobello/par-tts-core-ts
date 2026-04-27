@@ -1,6 +1,6 @@
 {
   "name": "@paulrobello/par-tts-core-ts",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Provider-neutral TypeScript text-to-speech library for Node, browsers via proxy, and pi extensions",
   "license": "MIT",
   "author": "Paul Robello <probello@gmail.com>",
