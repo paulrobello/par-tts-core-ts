@@ -1,6 +1,6 @@
 {
   "name": "@paulrobello/par-tts-core-ts",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Provider-neutral TypeScript text-to-speech library for Node, browsers via proxy, and pi extensions",
   "license": "MIT",
   "author": "Paul Robello <probello@gmail.com>",
@@ -60,14 +60,14 @@
     "precommit:run": "pre-commit run --all-files"
   },
   "devDependencies": {
-    "@eslint/js": "^9",
-    "@types/node": "22.10.0",
-    "eslint": "^9",
-    "globals": "^17.5.0",
-    "tsup": "8.5.0",
-    "typescript": "5.9.3",
-    "typescript-eslint": "^8.59.0",
-    "vitest": "3.2.4"
+    "@eslint/js": "^10",
+    "@types/node": "25.9.1",
+    "eslint": "^10",
+    "globals": "^17.6.0",
+    "tsup": "8.5.1",
+    "typescript": "6.0.3",
+    "typescript-eslint": "^8.60.0",
+    "vitest": "4.1.7"
   },
   "peerDependencies": {
     "@mariozechner/pi-coding-agent": "*",
